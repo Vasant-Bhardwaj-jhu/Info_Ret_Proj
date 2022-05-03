@@ -85,14 +85,18 @@ time.sleep(5)
 see_more_button = wd.find_element(By.XPATH, '//*[@id="aod-pinned-offer-show-more-link"]')
 see_more_button.click()
 
-time.sleep(3)
+#time.sleep(3)
 
 pinned_offer = wd.find_element(By.XPATH, '//*[@id="aod-pinned-offer"]')
 main_seller_object_info = pinned_offer.find_element(By.XPATH, '//*[@id="aod-pinned-offer-additional-content"]')
 main_seller_name = main_seller_object_info.find_element(By.XPATH, './/*[@id="aod-offer-shipsFrom"]/div/div/div[2]/span').text
-main_seller_ratings = main_seller_object_info.find_element(By.XPATH, './/*[@id="seller-rating-count-{iter}"]/span').text
+main_seller_ratings_text = main_seller_object_info.find_element(By.XPATH, './/*[@id="seller-rating-count-{iter}"]/span').text
+main_seller_rating = main_seller_ratings_text.split("%")[0][-2:]
+main_num_ratings = main_seller_ratings_text.split(" ")[0][1:]
 main_seller_delivery_day = pinned_offer.find_element(By.XPATH, './/*[@id="mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE"]/span/span').text
-main_seller_delivery_date = main_seller_delivery_day.split(', ')[1]
+#main_seller_delivery_date = main_seller_delivery_day.split(', ')[1]
+main_seller_add_cart = pinned_offer.find_element(By.XPATH, './/*[@id="a-autoid-2-offer-0"]/span/input')
+main_seller_add_cart.click()
 main_whole_price = pinned_offer.find_elements(by=By.XPATH, value='.//span[@class="a-price-whole"]')
 main_fraction_price = pinned_offer.find_elements(by=By.XPATH, value='.//span[@class="a-price-fraction"]')
 
@@ -100,13 +104,12 @@ if main_whole_price != [] and main_fraction_price != []:
     main_sellerPrice = '.'.join([main_whole_price[0].text, main_fraction_price[0].text])
 else:
     main_sellerPrice = 0
-print("Seller Price: " + main_sellerPrice)
 
-
-print(main_seller_name)
-print(main_seller_ratings)
-print(main_seller_ratings)
-print(main_sellerPrice)
+print("Main Seller Name: " + main_seller_name)
+print("Main Seller Delivery: " + main_seller_delivery_day)
+print("Main Seller Rating: " +main_seller_rating)
+print("Main Seller Num Ratings: " +main_num_ratings)
+print("Main Seller Price: " + main_sellerPrice)
 
 
 all_other_sellers = wait(wd, 50).until(EC.presence_of_all_elements_located((By.ID, 'aod-offer')))
@@ -134,10 +137,16 @@ for seller in all_other_sellers:
     try:
         sellerRatingObject = seller.find_element(By.XPATH, './/*[@id="aod-offer-seller-rating"]/span[@class="a-size-small a-color-base"]/span')
         sellerRatingText = sellerRatingObject.text
+        sellerRatingText.replace('\n', '')
         #sellerRatingPercent = sellerRatingText.split("%")[0]
     except:
-        sellerRatingText = "NULL"
-    print("Seller Rating: " + sellerRatingText)
+        sellerRatingText = None
+        sellerRating = None
+        numRatings = None
+    sellerRating = sellerRatingText.split("%")[0][-2:]
+    numRatings = sellerRatingText.split(" ")[0][1:]
+    print("Seller Rating: " + sellerRating)
+    print("Num Ratings: " + numRatings)
 
     sellerBookStatusObject = seller.find_element(By.XPATH, './/*[@id="aod-offer-heading"]')
     sellerBookStatus = sellerBookStatusObject.text
