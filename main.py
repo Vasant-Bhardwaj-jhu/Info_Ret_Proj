@@ -29,7 +29,7 @@ class weightedDoc:
     reviews : int
     numrev : int
     quality : str
-    sellerAddToCart: None# webdriver.WebObject
+    sellerAddToCart: selenium.webdriver.remote.webelement.WebElement
     weight : int
 
 
@@ -315,6 +315,7 @@ def get_books_amazon():
 
         addToCartButtonObject = seller.find_element(By.XPATH,
                                                     './/*[@class="a-button a-button-primary aod-atc-generic-btn-desktop"]/span/input')
+        #print(type(addToCartButtonObject))
         # STORE THE aria-label string
         # to find the add to cart button
         # print(addToCartButtonObject.get_attribute('aria-label'))
@@ -325,7 +326,7 @@ def get_books_amazon():
 
         time.sleep(3)
         Books_found.append(weightedDoc("Amazon", sellerPrice, day, sellerRating,
-                                       numRatings, sellerName, None, sellerRatingText))
+                                       numRatings, sellerName, addToCartButtonObject, sellerRatingText))
 
     time.sleep(5)
     return Books_found
