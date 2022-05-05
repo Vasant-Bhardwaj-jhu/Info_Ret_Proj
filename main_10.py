@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait as wait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
+
 class Seller:
     website: str
     sellerName: str

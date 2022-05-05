@@ -1,3 +1,4 @@
+import selenium
 from selenium import webdriver
 import requests
 from bs4 import BeautifulSoup
@@ -6,6 +7,46 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait as wait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import datetime
+
+
+def weight_calc(date, cost, reviews, numrev):
+    weight = 0
+    weight += cost
+    weight = weight - log(reviews * numrev)
+    weight = weight + date
+    return weight
+
+
+def create_date(month, day):
+    return day
+
+class weightedDoc:
+    company: str
+    seller_name : str
+    cost: int
+    date : int
+    reviews : int
+    numrev : int
+    quality : str
+    sellerAddToCart: None# webdriver.WebObject
+    weight : int
+
+
+    def __init__(self, company, cost, date, reviews = None, numrev = None, seller_name = "", sellerAddToCart = None, quality = "new"):
+        self.company = company
+        self.cost = cost
+        self.date = date
+        self.reviews = reviews
+        self.numrev = numrev
+        self.seller_name = seller_name
+        self.sellerAddToCart = sellerAddToCart
+        self.quality = quality
+
+    def setWeight(self):
+        if company == "Barnes&Noble":
+            weight = weight_calc(self.date, self.cost, self.reviews, self.numrev)
+
 
 # For each book
 # Retrieve information from Amazon,Barnes and Noble, Powells(price, reviews, availability, etc.)
@@ -21,278 +62,315 @@ wd = webdriver.Chrome()
 
 wd.implicitly_wait(10)
 wd.get("https://www.amazon.com/")
-#search_bar = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[2]/div[1]/input")
-#time.sleep(5)
-#search_bar.send_keys("978-1071614174")
-#time.sleep(5)
-#search_button = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div/span/input")
-#search_button.click()
-#time.sleep(15)
-
-####################################################################################################################################
 
 
-wd.execute_script("window.open('');")
-wd.switch_to.window(wd.window_handles[1])
-
-wd.get("https://www.barnesandnoble.com/")
-search_bar = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/nav/div/div[3]/form/div/div[2]/div/input[1]")
-time.sleep(5)
-search_bar.send_keys("978-1071614174")
-time.sleep(5)
-search_button = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/nav/div/div[3]/form/div/span/button")
-search_button.click()
-time.sleep(7)
-
-name = wd.find_element(by=By.XPATH, value='/html/body/main/div[3]/div[1]/section/div[2]/div/div[3]/div[1]/header/div/h1')
-product_name = name.text
-
-# find price
-price = wd.find_element(by=By.XPATH, value='.//span[@id="pdp-cur-price"]').text
-product_price = float(price[1:])
-
-deliveryDay = wd.find_element(By.XPATH, './/*[@id="commerce-zone"]/div[2]/div[3]/div/span[2]/span').text
-deliveryDate = deliveryDay.split(', ')[1]
-
-time.sleep(5)
-
-#addToCartButton = wd.find_element(By.XPATH, '//*[@id="skuSelection"]/div[1]/form/input[5]')
-addToCartButton = wait(wd, 20).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="skuSelection"]/div[1]/form/input[5]')))
-addToCartButton.send_keys("\n")
-#addToCartButton.click()
-
-time.sleep(10)
-
-cartButton = wd.find_element(By.XPATH, '//*[@id="viewShoppingBag"]')
-cartButton.click()
-
-time.sleep(10)
-
-#checkoutButton = wd.find_element(By.XPATH, '//*[@id="checkoutForm"]/a')
-#checkoutButton.click()
-
-time.sleep(5)
-
-#shoppingCartButton = wd.find_element(By.XPATH, '//*[@id="rhf_header_element"]/nav/div/div[3]/ul/li[2]')
-#shoppingCartButton.click();
-
-#time.sleep(5)
-
-#continueToCheckout = wd.find_element(By.XPATH, '//*[@id="checkoutForm"]/a')
-#continueToCheckout.click()
+# search_bar = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[2]/div[1]/input")
+# time.sleep(5)
+# search_bar.send_keys("978-1071614174")
+# time.sleep(5)
+# search_button = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div/span/input")
+# search_button.click()
+# time.sleep(15)
 
 
-wd.get('https://www.barnesandnoble.com/checkout/guest-checkout.jsp')
+def get_books_barnes_and_noble():
+    wd.execute_script("window.open('');")
+    wd.switch_to.window(wd.window_handles[1])
 
-time.sleep(5)
+    wd.get("https://www.barnesandnoble.com/")
+    search_bar = wd.find_element(by=By.XPATH,
+                                 value="/html/body/div[1]/header/nav/div/div[3]/form/div/div[2]/div/input[1]")
+    time.sleep(5)
+    search_bar.send_keys("978-1071614174")
+    time.sleep(5)
+    search_button = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/nav/div/div[3]/form/div/span/button")
+    search_button.click()
+    time.sleep(7)
 
-firstNameBox = wd.find_element(By.XPATH, '//*[@id="firstName"]')
-lastNameBox = wd.find_element(By.XPATH, '//*[@id="lastName"]')
-streetAddressBox = wd.find_element(By.XPATH, '//*[@id="streetAddress"]')
-
-firstNameBox.send_keys("Saketh")
-lastNameBox.send_keys("Manda")
-streetAddressBox.send_keys("3700 North Charles St")
-
-time.sleep(5)
-
-print(product_name)
-print(product_price)
-print(deliveryDate)
-
-wd.switch_to.window(wd.window_handles[0])
-
-####################################################################################################################################
-
-
-search_bar = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[2]/div[1]/input")
-time.sleep(5)
-search_bar.send_keys("978-1071614174")
-time.sleep(5)
-search_button = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div/span/input")
-search_button.click()
-time.sleep(15)
-
-product_name = []
-#product_asin = []
-product_price = []
-#product_ratings = []
-#product_ratings_num = []
-product_link = []
-
-items_all = wait(wd, 10).until(EC.presence_of_all_elements_located((By.XPATH, '//div[contains(@class, "s-result-item s-asin")]')))
-items_sponsored = wait(wd, 10).until(EC.presence_of_all_elements_located((By.XPATH, '//div[contains(@class, "AdHolder")]')))
-items = [item for item in items_all if item not in items_sponsored]
-for item in items:
-    # find name
-    name = item.find_element(by=By.XPATH, value='.//span[@class="a-size-medium a-color-base a-text-normal"]')
-    product_name.append(name.text)
-
-    # find ASIN number
-    #data_asin = item.get_attribute("data-asin")
-    #product_asin.append(data_asin)
+    name = wd.find_element(by=By.XPATH,
+                           value='/html/body/main/div[3]/div[1]/section/div[2]/div/div[3]/div[1]/header/div/h1')
+    product_name = name.text
 
     # find price
-    whole_price = item.find_elements(by=By.XPATH, value='.//span[@class="a-price-whole"]')
-    fraction_price = item.find_elements(by=By.XPATH, value='.//span[@class="a-price-fraction"]')
+    price = wd.find_element(by=By.XPATH, value='.//span[@id="pdp-cur-price"]').text
+    product_price = float(price[1:])
 
-    if whole_price != [] and fraction_price != []:
-        price = '.'.join([whole_price[0].text, fraction_price[0].text])
-    else:
-        price = 0
-    product_price.append(price)
+    deliveryDay = wd.find_element(By.XPATH, './/*[@id="commerce-zone"]/div[2]/div[3]/div/span[2]/span').text
+    deliveryDate = deliveryDay.split(', ')[1]
 
-    # find ratings box
-    ratings_box = item.find_elements(by=By.XPATH, value='.//div[@class="a-row a-size-small"]/span')
+    Barnes_And_Noble_book = weightedDoc("Barnes&Noble", product_price, deliveryDate)
+    time.sleep(5)
+    wd.switch_to.window(wd.window_handles[0])
+    return Barnes_And_Noble_book
 
-    # find ratings and ratings_num
-    #if ratings_box != []:
-        #ratings = ratings_box[0].get_attribute('aria-label')
-        #ratings_num = ratings_box[1].get_attribute('aria-label')
-    #else:
-        #ratings, ratings_num = 0, 0
 
-    #product_ratings.append(ratings)
-    #product_ratings_num.append(str(ratings_num))
+def barnes_and_noble_add_to_cart():
+    # addToCartButton = wd.find_element(By.XPATH, '//*[@id="skuSelection"]/div[1]/form/input[5]')
+    addToCartButton = wait(wd, 20).until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="skuSelection"]/div[1]/form/input[5]')))
+    addToCartButton.send_keys("\n")
+    # addToCartButton.click()
 
-    # find link
-    link = item.find_element(by=By.XPATH, value='.//*[@class="a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal"]').get_attribute("href")
-    product_link.append(link)
+    time.sleep(10)
 
-wd.get(product_link[0])
+    cartButton = wd.find_element(By.XPATH, '//*[@id="viewShoppingBag"]')
+    cartButton.click()
 
-all_sellers_button = wd.find_element(By.XPATH, '//*[@id="a-autoid-2"]/span')
-all_sellers_button.click()
+    time.sleep(10)
 
-time.sleep(5)
+    # checkoutButton = wd.find_element(By.XPATH, '//*[@id="checkoutForm"]/a')
+    # checkoutButton.click()
 
-see_more_button = wd.find_element(By.XPATH, '//*[@id="aod-pinned-offer-show-more-link"]')
-see_more_button.click()
+    time.sleep(5)
 
-#time.sleep(3)
+    # shoppingCartButton = wd.find_element(By.XPATH, '//*[@id="rhf_header_element"]/nav/div/div[3]/ul/li[2]')
+    # shoppingCartButton.click();
 
-pinned_offer = wd.find_element(By.XPATH, '//*[@id="aod-pinned-offer"]')
-main_seller_object_info = pinned_offer.find_element(By.XPATH, '//*[@id="aod-pinned-offer-additional-content"]')
-main_seller_name = main_seller_object_info.find_element(By.XPATH, './/*[@id="aod-offer-shipsFrom"]/div/div/div[2]/span').text
+    # time.sleep(5)
 
-try:
-    main_seller_ratings_text = main_seller_object_info.find_element(By.XPATH, './/*[@id="seller-rating-count-{iter}"]/span').text
-    main_seller_rating = main_seller_ratings_text.split("%")[0][-2:]
-    main_num_ratings = main_seller_ratings_text.split(" ")[0][1:]
-except:
-    main_seller_rating = None
-    main_num_ratings = None
+    # continueToCheckout = wd.find_element(By.XPATH, '//*[@id="checkoutForm"]/a')
+    # continueToCheckout.click()
 
-main_seller_delivery_day = pinned_offer.find_element(By.XPATH, './/*[@id="mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE"]/span/span').text
-#main_seller_delivery_date = main_seller_delivery_day.split(', ')[1]
-main_seller_add_cart = pinned_offer.find_element(By.XPATH, './/*[@id="a-autoid-2-offer-0"]/span/input')
-#main_seller_add_cart.click()
-main_whole_price = pinned_offer.find_elements(by=By.XPATH, value='.//span[@class="a-price-whole"]')
-main_fraction_price = pinned_offer.find_elements(by=By.XPATH, value='.//span[@class="a-price-fraction"]')
 
-if main_whole_price != [] and main_fraction_price != []:
-    main_sellerPrice = '.'.join([main_whole_price[0].text, main_fraction_price[0].text])
-else:
-    main_sellerPrice = 0
+def checkout_barnes_and_noble():
+    wd.get('https://www.barnesandnoble.com/checkout/guest-checkout.jsp')
 
-print("Main Seller Name: " + main_seller_name)
-print("Main Seller Delivery: " + main_seller_delivery_day)
-print("Main Seller Rating: " +main_seller_rating)
-print("Main Seller Num Ratings: " +main_num_ratings)
-print("Main Seller Price: " + main_sellerPrice)
+    time.sleep(5)
 
-time.sleep(5)
+    firstNameBox = wd.find_element(By.XPATH, '//*[@id="firstName"]')
+    lastNameBox = wd.find_element(By.XPATH, '//*[@id="lastName"]')
+    streetAddressBox = wd.find_element(By.XPATH, '//*[@id="streetAddress"]')
 
-all_other_sellers = wait(wd, 50).until(EC.presence_of_all_elements_located((By.ID, 'aod-offer')))
+    firstNameBox.send_keys("Saketh")
+    lastNameBox.send_keys("Manda")
+    streetAddressBox.send_keys("3700 North Charles St")
 
-for seller in all_other_sellers:
+    time.sleep(5)
 
-    sellerNameObject = seller.find_element(By.XPATH, './/*[@id="aod-offer-shipsFrom"]/div[@class="a-fixed-left-grid"]/div[@class="a-fixed-left-grid-inner"]/div[@class="a-fixed-left-grid-col a-col-right"]/span')
-    sellerName = sellerNameObject.text
-    print("Seller Name: " + sellerName)
+    # print(product_name)
+    # print(product_price)
+    # print(deliveryDate)
 
-    whole_price = seller.find_elements(by=By.XPATH, value='.//span[@class="a-price-whole"]')
-    fraction_price = seller.find_elements(by=By.XPATH, value='.//span[@class="a-price-fraction"]')
+    wd.switch_to.window(wd.window_handles[0])
 
-    if whole_price != [] and fraction_price != []:
-        sellerPrice = '.'.join([whole_price[0].text, fraction_price[0].text])
-    else:
-        sellerPrice = 0
-    print("Seller Price: " + sellerPrice)
 
-    dayObject = seller.find_element(By.XPATH, './/*[@id="mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE"]/span/span[@class="a-text-bold"]')
-    day = dayObject.text
-    #date = day.split(' ')[1]
-    print("Delivery date= "+day)
+def get_books_amazon():
+    Books_found = []
+
+    search_bar = wd.find_element(by=By.XPATH,
+                                 value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[2]/div[1]/input")
+    time.sleep(5)
+    search_bar.send_keys("978-1071614174")
+    time.sleep(5)
+    search_button = wd.find_element(by=By.XPATH,
+                                    value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div/span/input")
+    search_button.click()
+    time.sleep(15)
+
+    product_name = []
+    # product_asin = []
+    product_price = []
+    # product_ratings = []
+    # product_ratings_num = []
+    product_link = []
+
+    items_all = wait(wd, 10).until(
+        EC.presence_of_all_elements_located((By.XPATH, '//div[contains(@class, "s-result-item s-asin")]')))
+    items_sponsored = wait(wd, 10).until(
+        EC.presence_of_all_elements_located((By.XPATH, '//div[contains(@class, "AdHolder")]')))
+    items = [item for item in items_all if item not in items_sponsored]
+    for item in items:
+        # find name
+        name = item.find_element(by=By.XPATH, value='.//span[@class="a-size-medium a-color-base a-text-normal"]')
+        product_name.append(name.text)
+
+        # find ASIN number
+        # data_asin = item.get_attribute("data-asin")
+        # product_asin.append(data_asin)
+
+        # find price
+        whole_price = item.find_elements(by=By.XPATH, value='.//span[@class="a-price-whole"]')
+        fraction_price = item.find_elements(by=By.XPATH, value='.//span[@class="a-price-fraction"]')
+
+        if whole_price != [] and fraction_price != []:
+            price = '.'.join([whole_price[0].text, fraction_price[0].text])
+        else:
+            price = 0
+        product_price.append(price)
+
+        # find ratings box
+        ratings_box = item.find_elements(by=By.XPATH, value='.//div[@class="a-row a-size-small"]/span')
+
+        # find ratings and ratings_num
+        # if ratings_box != []:
+        # ratings = ratings_box[0].get_attribute('aria-label')
+        # ratings_num = ratings_box[1].get_attribute('aria-label')
+        # else:
+        # ratings, ratings_num = 0, 0
+
+        # product_ratings.append(ratings)
+        # product_ratings_num.append(str(ratings_num))
+
+        # find link
+        link = item.find_element(by=By.XPATH,
+                                 value='.//*[@class="a-link-normal s-underline-text s-underline-link-text s-link-style a-text-normal"]').get_attribute(
+            "href")
+        product_link.append(link)
+
+    wd.get(product_link[0])
+
+    all_sellers_button = wd.find_element(By.XPATH, '//*[@id="a-autoid-2"]/span')
+    all_sellers_button.click()
+
+    time.sleep(5)
+
+    see_more_button = wd.find_element(By.XPATH, '//*[@id="aod-pinned-offer-show-more-link"]')
+    see_more_button.click()
+
+    # time.sleep(3)
+
+    pinned_offer = wd.find_element(By.XPATH, '//*[@id="aod-pinned-offer"]')
+    main_seller_object_info = pinned_offer.find_element(By.XPATH, '//*[@id="aod-pinned-offer-additional-content"]')
+    main_seller_name = main_seller_object_info.find_element(By.XPATH,
+                                                            './/*[@id="aod-offer-shipsFrom"]/div/div/div[2]/span').text
 
     try:
-        sellerRatingObject = seller.find_element(By.XPATH, './/*[@id="aod-offer-seller-rating"]/span[@class="a-size-small a-color-base"]/span')
-        sellerRatingText = sellerRatingObject.text
-        sellerRatingText.replace('\n', '')
-        #sellerRatingPercent = sellerRatingText.split("%")[0]
+        main_seller_ratings_text = main_seller_object_info.find_element(By.XPATH,
+                                                                        './/*[@id="seller-rating-count-{iter}"]/span').text
+        main_seller_rating = main_seller_ratings_text.split("%")[0][-2:]
+        main_num_ratings = main_seller_ratings_text.split(" ")[0][1:]
     except:
-        sellerRatingText = None
-        sellerRating = None
-        numRatings = None
-    sellerRating = sellerRatingText.split("%")[0][-2:]
-    numRatings = sellerRatingText.split(" ")[0][1:]
-    print("Seller Rating: " + sellerRating)
-    print("Num Ratings: " + numRatings)
+        main_seller_rating = None
+        main_num_ratings = None
 
-    sellerBookStatusObject = seller.find_element(By.XPATH, './/*[@id="aod-offer-heading"]')
-    sellerBookStatus = sellerBookStatusObject.text
-    print("Book condition: " + sellerBookStatus)
+    main_seller_delivery_day = pinned_offer.find_element(By.XPATH,
+                                                         './/*[@id="mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE"]/span/span').text
+    # main_seller_delivery_date = main_seller_delivery_day.split(', ')[1]
+    main_seller_add_cart = pinned_offer.find_element(By.XPATH, './/*[@id="a-autoid-2-offer-0"]/span/input')
+    # main_seller_add_cart.click()
+    main_whole_price = pinned_offer.find_elements(by=By.XPATH, value='.//span[@class="a-price-whole"]')
+    main_fraction_price = pinned_offer.find_elements(by=By.XPATH, value='.//span[@class="a-price-fraction"]')
 
-    addToCartButtonObject = seller.find_element(By.XPATH, './/*[@class="a-button a-button-primary aod-atc-generic-btn-desktop"]/span/input')
-    print(addToCartButtonObject.get_attribute('aria-label'))
+    if main_whole_price != [] and main_fraction_price != []:
+        main_sellerPrice = '.'.join([main_whole_price[0].text, main_fraction_price[0].text])
+    else:
+        main_sellerPrice = 0
 
-    #addToCartButtonObject.click()
+    ## ADD QUALITY FIELD ##
+    main_seller_quality = "New"
+    # print("Main Seller Name: " + main_seller_name)
+    # print("Main Seller Delivery: " + main_seller_delivery_day)
+    # print("Main Seller Rating: " + main_seller_rating)
+    # print("Main Seller Num Ratings: " + main_num_ratings)
+    # print("Main Seller Price: " + main_sellerPrice)
 
-    print("\n")
+    Books_found.append(weightedDoc("Amazon", main_sellerPrice, main_seller_delivery_day, main_seller_rating,
+                                       main_num_ratings,main_seller_name,main_seller_add_cart, main_seller_quality))
 
-    time.sleep(3)
+    time.sleep(5)
 
-time.sleep(5)
+    all_other_sellers = wait(wd, 50).until(EC.presence_of_all_elements_located((By.ID, 'aod-offer')))
 
-closeOtherSellers = wd.find_element(By.XPATH, '//*[@id="aod-close"]/span/span/i')
-closeOtherSellers.click()
+    for seller in all_other_sellers:
 
-#wd.get('https://www.amazon.com/gp/cart/view.html?ref_=nav_cart')
-cartButton = wd.find_element(By.XPATH, '//*[@id="nav-cart-count-container"]')
-cartButton.click()
+        sellerNameObject = seller.find_element(By.XPATH,
+                                               './/*[@id="aod-offer-shipsFrom"]/div[@class="a-fixed-left-grid"]/div[@class="a-fixed-left-grid-inner"]/div[@class="a-fixed-left-grid-col a-col-right"]/span')
+        sellerName = sellerNameObject.text
+        # print("Seller Name: " + sellerName)
 
-time.sleep(5)
+        whole_price = seller.find_elements(by=By.XPATH, value='.//span[@class="a-price-whole"]')
+        fraction_price = seller.find_elements(by=By.XPATH, value='.//span[@class="a-price-fraction"]')
 
-proceedToCheckout = wd.find_element(By.XPATH, '//*[@id="sc-buy-box-ptc-button"]/span/input')
-proceedToCheckout.click()
+        if whole_price != [] and fraction_price != []:
+            sellerPrice = '.'.join([whole_price[0].text, fraction_price[0].text])
+        else:
+            sellerPrice = 0
+        # print("Seller Price: " + sellerPrice)
 
-time.sleep(5)
+        dayObject = seller.find_element(By.XPATH,
+                                        './/*[@id="mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE"]/span/span[@class="a-text-bold"]')
+        day = dayObject.text
+        # date = day.split(' ')[1]
+        # print("Delivery date= " + day)
 
-signInBox = wd.find_element(By.XPATH, '//*[@id="ap_email"]')
-signInBox.send_keys('')
-signInContinueButton = wd.find_element(By.XPATH, '//*[@id="continue"]')
-signInContinueButton.click()
+        try:
+            sellerRatingObject = seller.find_element(By.XPATH,
+                                                     './/*[@id="aod-offer-seller-rating"]/span[@class="a-size-small a-color-base"]/span')
+            sellerRatingText = sellerRatingObject.text
+            sellerRatingText.replace('\n', '')
+            sellerRating = sellerRatingText.split("%")[0][-2:]
+            numRatings = sellerRatingText.split(" ")[0][1:]
+            # sellerRatingPercent = sellerRatingText.split("%")[0]
+        except:
+            sellerRatingText = None
+            sellerRating = None
+            numRatings = None
 
-time.sleep(5)
+        # print("Seller Rating: " + sellerRating)
+        # print("Num Ratings: " + numRatings)
 
-passwordBox = wd.find_element(By.XPATH, '//*[@id="ap_password"]')
-passwordBox.send_keys('')
-passwordSignInButton = wd.find_element(By.XPATH, '//*[@id="signInSubmit"]')
-passwordSignInButton.click()
+        sellerBookStatusObject = seller.find_element(By.XPATH, './/*[@id="aod-offer-heading"]')
+        sellerBookStatus = sellerBookStatusObject.text
+        # print("Book condition: " + sellerBookStatus)
 
-time.sleep(15)
+        addToCartButtonObject = seller.find_element(By.XPATH,
+                                                    './/*[@class="a-button a-button-primary aod-atc-generic-btn-desktop"]/span/input')
+        # STORE THE aria-label string
+        # to find the add to cart button
+        # print(addToCartButtonObject.get_attribute('aria-label'))
+
+        # addToCartButtonObject.click()
+
+        # print("\n")
+
+        time.sleep(3)
+        Books_found.append(weightedDoc("Amazon", sellerPrice, day, sellerRating,
+                                       numRatings, sellerName, None, sellerRatingText))
+
+    time.sleep(5)
+    return Books_found
 
 
+def checkout_amazon():
+    closeOtherSellers = wd.find_element(By.XPATH, '//*[@id="aod-close"]/span/span/i')
+    closeOtherSellers.click()
 
-#finalDealAddToCartButtonList = wd.find_elements(By.XPATH, '//*[@name="submit.addToCart"')
+    # wd.get('https://www.amazon.com/gp/cart/view.html?ref_=nav_cart')
+    cartButton = wd.find_element(By.XPATH, '//*[@id="nav-cart-count-container"]')
+    cartButton.click()
 
-# to check data scraped
-#print(product_name)
-#print(product_asin)
-#print(product_price)
-#print(product_ratings)
-#print(product_ratings_num)
-#print(product_link)
+    time.sleep(5)
+
+    proceedToCheckout = wd.find_element(By.XPATH, '//*[@id="sc-buy-box-ptc-button"]/span/input')
+    proceedToCheckout.click()
+
+    time.sleep(5)
+
+    signInBox = wd.find_element(By.XPATH, '//*[@id="ap_email"]')
+    signInBox.send_keys('')
+    signInContinueButton = wd.find_element(By.XPATH, '//*[@id="continue"]')
+    signInContinueButton.click()
+
+    time.sleep(5)
+
+    passwordBox = wd.find_element(By.XPATH, '//*[@id="ap_password"]')
+    passwordBox.send_keys('')
+    passwordSignInButton = wd.find_element(By.XPATH, '//*[@id="signInSubmit"]')
+    passwordSignInButton.click()
+
+    time.sleep(15)
+
+    wd.quit()
 
 
-wd.quit()
+if __name__ == "__main__":
+    allBooks = []
+    Book1 = get_books_barnes_and_noble()
+    allBooks.append(Book1)
+    print(Book1.date, Book1.cost, Book1.numrev, Book1.reviews, Book1.company, "\n")
+    Amazon_Books = get_books_amazon()
+    for books in Amazon_Books:
+        print(books.date, books.cost, books.numrev, books.reviews, books.company, "\n")
+    allBooks.append(Amazon_Books)
+
+
