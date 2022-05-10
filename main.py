@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait as wait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import datetime
-
+from datetime import datetime
 
 def weight_calc(date, cost, reviews, numrev):
     weight = 0
@@ -24,8 +24,8 @@ def create_date(month, day):
 class weightedDoc:
     company: str
     seller_name : str
-    cost: int
-    date : int
+    cost: float
+    date : datetime
     reviews : int
     numrev : int
     quality : str
@@ -44,7 +44,7 @@ class weightedDoc:
         self.quality = quality
 
     def setWeight(self):
-        if company == "Barnes&Noble":
+        if self.company == "Barnes&Noble":
             weight = weight_calc(self.date, self.cost, self.reviews, self.numrev)
 
 
@@ -96,18 +96,26 @@ def get_books_barnes_and_noble():
     product_price = float(price[1:])
 
     deliveryDay = wd.find_element(By.XPATH, './/*[@id="commerce-zone"]/div[2]/div[3]/div/span[2]/span').text
-    deliveryDate = deliveryDay.split(', ')[1]
 
-    Barnes_And_Noble_book = weightedDoc("Barnes&Noble", product_price, deliveryDate)
+    if ", " in deliveryDay:
+        deliveryDate = (deliveryDay.split(', '))[1]
+    else:
+        deliveryDate = deliveryDay
+
+    formattedDateTime = datetime.strptime(deliveryDate, '%b %d')
+
+    Barnes_And_Noble_book = weightedDoc("Barnes&Noble", product_price, formattedDateTime, 0, 0, None, None, None)
     time.sleep(5)
     wd.switch_to.window(wd.window_handles[0])
     return Barnes_And_Noble_book
 
 
 def barnes_and_noble_add_to_cart():
-    # addToCartButton = wd.find_element(By.XPATH, '//*[@id="skuSelection"]/div[1]/form/input[5]')
-    addToCartButton = wait(wd, 20).until(
-        EC.element_to_be_clickable((By.XPATH, '//*[@id="skuSelection"]/div[1]/form/input[5]')))
+    wd.switch_to.window(wd.window_handles[1])
+
+    addToCartButton = wd.find_element(By.XPATH, '//*[@id="skuSelection"]/div[1]/form/input[5]')
+    #addToCartButton = wait(wd, 20).until(
+        #EC.element_to_be_clickable((By.XPATH, '//*[@id="skuSelection"]/div[1]/form/input[5]')))
     addToCartButton.send_keys("\n")
     # addToCartButton.click()
 
@@ -133,6 +141,8 @@ def barnes_and_noble_add_to_cart():
 
 
 def checkout_barnes_and_noble():
+    wd.switch_to.window(wd.window_handles[1])
+
     wd.get('https://www.barnesandnoble.com/checkout/guest-checkout.jsp')
 
     time.sleep(5)
@@ -160,7 +170,7 @@ def get_books_amazon():
     search_bar = wd.find_element(by=By.XPATH,
                                  value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[2]/div[1]/input")
     time.sleep(5)
-    search_bar.send_keys("978-1071614174")
+    search_bar.send_keys(" 978-1800560413")
     time.sleep(5)
     search_button = wd.find_element(by=By.XPATH,
                                     value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div/span/input")
@@ -176,9 +186,13 @@ def get_books_amazon():
 
     items_all = wait(wd, 10).until(
         EC.presence_of_all_elements_located((By.XPATH, '//div[contains(@class, "s-result-item s-asin")]')))
-    items_sponsored = wait(wd, 10).until(
+    try:
+        items_sponsored = wait(wd, 10).until(
         EC.presence_of_all_elements_located((By.XPATH, '//div[contains(@class, "AdHolder")]')))
-    items = [item for item in items_all if item not in items_sponsored]
+        items = [item for item in items_all if item not in items_sponsored]
+    except:
+        items = items_all
+
     for item in items:
         # find name
         name = item.find_element(by=By.XPATH, value='.//span[@class="a-size-medium a-color-base a-text-normal"]')
@@ -245,6 +259,12 @@ def get_books_amazon():
 
     main_seller_delivery_day = pinned_offer.find_element(By.XPATH,
                                                          './/*[@id="mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE"]/span/span').text
+    if ", " in main_seller_delivery_day:
+        main_seller_delivery_day = (main_seller_delivery_day.split(', '))[1]
+
+    if " - " in main_seller_delivery_day:
+        main_seller_delivery_day = (main_seller_delivery_day.split(' - '))[0]
+    main_seller_delivery_day_formatted = datetime.strptime(main_seller_delivery_day, '%b %d')
     # main_seller_delivery_date = main_seller_delivery_day.split(', ')[1]
     main_seller_add_cart = pinned_offer.find_element(By.XPATH, './/*[@id="a-autoid-2-offer-0"]/span/input')
     # main_seller_add_cart.click()
@@ -264,7 +284,7 @@ def get_books_amazon():
     # print("Main Seller Num Ratings: " + main_num_ratings)
     # print("Main Seller Price: " + main_sellerPrice)
 
-    Books_found.append(weightedDoc("Amazon", main_sellerPrice, main_seller_delivery_day, main_seller_rating,
+    Books_found.append(weightedDoc("Amazon", float(main_sellerPrice), main_seller_delivery_day_formatted, main_seller_rating,
                                        main_num_ratings,main_seller_name,main_seller_add_cart, main_seller_quality))
 
     time.sleep(5)
@@ -290,8 +310,14 @@ def get_books_amazon():
         dayObject = seller.find_element(By.XPATH,
                                         './/*[@id="mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE"]/span/span[@class="a-text-bold"]')
         day = dayObject.text
+        if ", " in day:
+            day = (day.split(', '))[1]
+
+        if " - " in day:
+            day = (day.split(' - '))[0]
         # date = day.split(' ')[1]
         # print("Delivery date= " + day)
+        formattedDay = datetime.strptime(day, '%b %d')
 
         try:
             sellerRatingObject = seller.find_element(By.XPATH,
@@ -325,7 +351,7 @@ def get_books_amazon():
         # print("\n")
 
         time.sleep(3)
-        Books_found.append(weightedDoc("Amazon", sellerPrice, day, sellerRating,
+        Books_found.append(weightedDoc("Amazon", float(sellerPrice), formattedDay, sellerRating,
                                        numRatings, sellerName, addToCartButtonObject, sellerRatingText))
 
     time.sleep(5)
@@ -348,7 +374,7 @@ def checkout_amazon():
     time.sleep(5)
 
     signInBox = wd.find_element(By.XPATH, '//*[@id="ap_email"]')
-    signInBox.send_keys('')
+    signInBox.send_keys('4045437069')
     signInContinueButton = wd.find_element(By.XPATH, '//*[@id="continue"]')
     signInContinueButton.click()
 
@@ -368,10 +394,17 @@ if __name__ == "__main__":
     allBooks = []
     Book1 = get_books_barnes_and_noble()
     allBooks.append(Book1)
-    print(Book1.date, Book1.cost, Book1.numrev, Book1.reviews, Book1.company, "\n")
     Amazon_Books = get_books_amazon()
-    for books in Amazon_Books:
-        print(books.date, books.cost, books.numrev, books.reviews, books.company, "\n")
-    allBooks.append(Amazon_Books)
+    allBooks = allBooks + Amazon_Books
+    for books in allBooks:
+        print(books.company, books.date, books.cost, books.numrev, books.reviews, books.company, "\n")
 
+    allBooks.sort(key=lambda x:x.cost)
+    bookToBuy = Amazon_Books[0]
+    if (bookToBuy.company == "Amazon"):
+        bookToBuy.sellerAddToCart.click()
+        checkout_amazon()
+    else:
+        barnes_and_noble_add_to_cart()
+        checkout_barnes_and_noble()
 
