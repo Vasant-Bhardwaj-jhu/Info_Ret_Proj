@@ -10,16 +10,28 @@ import time
 import datetime
 from datetime import datetime
 
-def weight_calc(date, cost, reviews, numrev):
+def weight_calc(date, cost, reviews, numrev, bookcondition = None):
     weight = 0
     weight += cost
     weight = weight - log(reviews * numrev)
-    weight = weight + date
+    today = date.today()
+    bookcondweight = calc_condition(bookcondition)
+    day_diff = num_of_days(date, today)
+    weight = weight + day_diff
     return weight
 
+def calc_condition(cond):
+    if "New" in cond:
+        return 5
+    elif "Good" in cond:
+        return 4
+    elif "Used" in cond:
+        return 3
+    else:
+        return 1
 
-def create_date(month, day):
-    return day
+def num_of_days(date1, date2):
+    return (date2-date1).days
 
 class weightedDoc:
     company: str
@@ -352,7 +364,7 @@ def get_books_amazon():
 
         time.sleep(3)
         Books_found.append(weightedDoc("Amazon", float(sellerPrice), formattedDay, sellerRating,
-                                       numRatings, sellerName, addToCartButtonObject, sellerRatingText))
+                                       numRatings, sellerName, addToCartButtonObject, sellerBookStatus))
 
     time.sleep(5)
     return Books_found
@@ -364,6 +376,7 @@ def checkout_amazon():
 
     # wd.get('https://www.amazon.com/gp/cart/view.html?ref_=nav_cart')
     cartButton = wd.find_element(By.XPATH, '//*[@id="nav-cart-count-container"]')
+    cartButton.send_keys('\n')
     cartButton.click()
 
     time.sleep(5)
@@ -397,7 +410,7 @@ if __name__ == "__main__":
     Amazon_Books = get_books_amazon()
     allBooks = allBooks + Amazon_Books
     for books in allBooks:
-        print(books.company, books.date, books.cost, books.numrev, books.reviews, books.company, "\n")
+        print(books.company, books.date, books.cost, books.numrev, books.reviews, books.company, books.quality, "\n")
 
     allBooks.sort(key=lambda x:x.cost)
     bookToBuy = Amazon_Books[0]
