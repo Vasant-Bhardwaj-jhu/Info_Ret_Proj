@@ -1,3 +1,5 @@
+from math import log
+
 import selenium
 from selenium import webdriver
 import requests
@@ -10,10 +12,14 @@ import time
 import datetime
 from datetime import datetime
 
-def weight_calc(date, cost, reviews, numrev, bookcondition = None):
+def weight_calc(date, cost, reviews, numrev, bookcondition = "New"):
     weight = 0
     weight += cost
-    weight = weight - log(reviews * numrev)
+
+    n = reviews * numrev
+    if n > 0:
+        weight = weight - log(reviews * numrev)
+
     today = date.today()
     bookcondweight = calc_condition(bookcondition)
     day_diff = num_of_days(date, today)
@@ -45,7 +51,7 @@ class weightedDoc:
     weight : int
 
 
-    def __init__(self, company, cost, date, reviews = None, numrev = None, seller_name = "", sellerAddToCart = None, quality = "new"):
+    def __init__(self, company, cost, date, reviews = None, numrev = None, seller_name = "", sellerAddToCart = None, quality = "New"):
         self.company = company
         self.cost = cost
         self.date = date
@@ -54,6 +60,8 @@ class weightedDoc:
         self.seller_name = seller_name
         self.sellerAddToCart = sellerAddToCart
         self.quality = quality
+
+        self.weight = weight_calc(self.date, self.cost, self.reviews, self.numrev, self.quality)
 
     def setWeight(self):
         if self.company == "Barnes&Noble":
@@ -116,7 +124,7 @@ def get_books_barnes_and_noble():
 
     formattedDateTime = datetime.strptime(deliveryDate, '%b %d')
 
-    Barnes_And_Noble_book = weightedDoc("Barnes&Noble", product_price, formattedDateTime, 0, 0, None, None, None)
+    Barnes_And_Noble_book = weightedDoc("Barnes&Noble", product_price, formattedDateTime, 0, 0, None, None, "New")
     time.sleep(5)
     wd.switch_to.window(wd.window_handles[0])
     return Barnes_And_Noble_book
@@ -266,8 +274,8 @@ def get_books_amazon():
         main_seller_rating = main_seller_ratings_text.split("%")[0][-2:]
         main_num_ratings = main_seller_ratings_text.split(" ")[0][1:]
     except:
-        main_seller_rating = None
-        main_num_ratings = None
+        main_seller_rating = 0
+        main_num_ratings = 0
 
     main_seller_delivery_day = pinned_offer.find_element(By.XPATH,
                                                          './/*[@id="mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE"]/span/span').text
@@ -341,8 +349,8 @@ def get_books_amazon():
             # sellerRatingPercent = sellerRatingText.split("%")[0]
         except:
             sellerRatingText = None
-            sellerRating = None
-            numRatings = None
+            sellerRating = 0
+            numRatings = 0
 
         # print("Seller Rating: " + sellerRating)
         # print("Num Ratings: " + numRatings)
@@ -363,8 +371,8 @@ def get_books_amazon():
         # print("\n")
 
         time.sleep(3)
-        Books_found.append(weightedDoc("Amazon", float(sellerPrice), formattedDay, sellerRating,
-                                       numRatings, sellerName, addToCartButtonObject, sellerBookStatus))
+        Books_found.append(weightedDoc("Amazon", float(sellerPrice), formattedDay, int(sellerRating),
+                                       int(numRatings), sellerName, addToCartButtonObject, sellerBookStatus))
 
     time.sleep(5)
     return Books_found
@@ -376,7 +384,7 @@ def checkout_amazon():
 
     # wd.get('https://www.amazon.com/gp/cart/view.html?ref_=nav_cart')
     cartButton = wd.find_element(By.XPATH, '//*[@id="nav-cart-count-container"]')
-    cartButton.send_keys('\n')
+    #cartButton.send_keys('\n')
     cartButton.click()
 
     time.sleep(5)
@@ -410,9 +418,9 @@ if __name__ == "__main__":
     Amazon_Books = get_books_amazon()
     allBooks = allBooks + Amazon_Books
     for books in allBooks:
-        print(books.company, books.date, books.cost, books.numrev, books.reviews, books.company, books.quality, "\n")
+        print(books.company, books.date, books.cost, books.numrev, books.reviews, books.company, books.quality, books.weight, "\n")
 
-    allBooks.sort(key=lambda x:x.cost)
+    allBooks.sort(key=lambda x:x.weight)
     bookToBuy = Amazon_Books[0]
     if (bookToBuy.company == "Amazon"):
         bookToBuy.sellerAddToCart.click()
