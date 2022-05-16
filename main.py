@@ -12,18 +12,23 @@ import time
 import datetime
 from datetime import datetime
 
+global price_alter
+global review_alter
+global date_alter
+
+
 def weight_calc(date, cost, reviews, numrev, bookcondition = "New"):
     weight = 0
-    weight += cost
+    weight += cost * (6-price_alter)
 
-    n = reviews * numrev
+    n = (reviews * numrev) * (6-review_alter)
     if n > 0:
-        weight = weight - log(reviews * numrev)
+        weight = weight - log(n)
 
     today = date.today()
     bookcondweight = calc_condition(bookcondition)
     day_diff = num_of_days(date, today)
-    weight = weight + day_diff
+    weight = weight + (day_diff) * (6-date_alter)
     return weight
 
 def calc_condition(cond):
@@ -101,7 +106,10 @@ def get_books_barnes_and_noble():
     search_bar = wd.find_element(by=By.XPATH,
                                  value="/html/body/div[1]/header/nav/div/div[3]/form/div/div[2]/div/input[1]")
     time.sleep(5)
-    search_bar.send_keys("978-1071614174")
+    search_bar.send_keys("978-1800560413") # Sets ISBN
+    # SAMPLE ISBNS BELOW:
+    # 978-1800560413
+    # 978-1071614174
     time.sleep(5)
     search_button = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/nav/div/div[3]/form/div/span/button")
     search_button.click()
@@ -190,7 +198,10 @@ def get_books_amazon():
     search_bar = wd.find_element(by=By.XPATH,
                                  value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[2]/div[1]/input")
     time.sleep(5)
-    search_bar.send_keys(" 978-1800560413")
+    search_bar.send_keys(" 978-1800560413") #Sets ISBN
+    # SAMPLE ISBNS BELOW:
+    # 978-1800560413
+    # 978-1071614174
     time.sleep(5)
     search_button = wd.find_element(by=By.XPATH,
                                     value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div/span/input")
@@ -411,7 +422,16 @@ def checkout_amazon():
     wd.quit()
 
 if __name__ == "__main__":
-    pref_store = "Amazon"
+    # price_alter = input("on a scale from 0 to 5, how important is price to you?")
+    # review_alter = input("on a scale from 0 to 5, how important are reviews to you?")
+    # date_alter = input("on a scale from 0 to 5, how important is date to you?")
+    # pref_store = input("which company do you prefer more, Amazon or Barnes and Noble? (write Amazon or Barnes below)")
+
+    #used to alter the weights of valeus for user preference, ran into issues implementing this using the terminal
+    pref_store = "Amazon"   #ALTER THIS TO CHANGE THE PREFERRED STORE
+    price_alter = 0         #ALTER THIS TO CHANGE THE IMPORTANCE OF PRICE (from 0 to 5)
+    review_alter = 5        #ALTER THIS TO CHANGE THE IMPORTANCE OF REVIEWS (from 0 to 5)
+    date_alter = 0          #ALTER THIS TO CHANGE THE IMPORTANCE OF THE DELIVERY DATE (from 0 to 5)
     allBooks = []
     Book1 = get_books_barnes_and_noble()
     if pref_store == "Barnes":
@@ -421,12 +441,14 @@ if __name__ == "__main__":
     allBooks.append(Book1)
     Amazon_Books = get_books_amazon()
     allBooks = allBooks + Amazon_Books
-    for books in allBooks:
-        print(books.company, books.date, books.cost, books.numrev, books.reviews, books.company, books.quality, books.weight, "\n")
-
     allBooks.sort(key=lambda x:x.weight)
-    bookToBuy = Amazon_Books[0]
+    for books in allBooks:
+        print(books.company, books.date, books.cost, books.numrev, books.reviews,
+              books.company, books.quality, books.weight, "\n")
 
+    bookToBuy = allBooks[0]
+    print(bookToBuy.company, bookToBuy.date, bookToBuy.cost, bookToBuy.numrev, bookToBuy.reviews, bookToBuy.company,
+          bookToBuy.quality, bookToBuy.weight, "\n")
 
     if (bookToBuy.company == "Amazon"):
         bookToBuy.sellerAddToCart.click()
