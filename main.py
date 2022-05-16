@@ -15,9 +15,11 @@ from datetime import datetime
 global price_alter
 global review_alter
 global date_alter
+global ISBN
+global pref_store
 
 
-def weight_calc(date, cost, reviews, numrev, bookcondition = "New"):
+def weight_calc(date, cost, reviews, numrev, company, bookcondition = "New"):
     weight = 0
     weight += cost * (6-price_alter)
 
@@ -29,6 +31,8 @@ def weight_calc(date, cost, reviews, numrev, bookcondition = "New"):
     bookcondweight = calc_condition(bookcondition)
     day_diff = num_of_days(date, today)
     weight = weight + (day_diff) * (6-date_alter)
+    if pref_store in company:
+        weight = weight / 5
     return weight
 
 def calc_condition(cond):
@@ -66,11 +70,11 @@ class weightedDoc:
         self.sellerAddToCart = sellerAddToCart
         self.quality = quality
 
-        self.weight = weight_calc(self.date, self.cost, self.reviews, self.numrev, self.quality)
+        self.weight = weight_calc(self.date, self.cost, self.reviews, self.numrev,self.company, self.quality)
 
     def setWeight(self):
         if self.company == "Barnes&Noble":
-            weight = weight_calc(self.date, self.cost, self.reviews, self.numrev)
+            weight = weight_calc(self.date, self.cost, self.reviews, self.numrev, self.company)
 
 
 # For each book
@@ -106,10 +110,7 @@ def get_books_barnes_and_noble():
     search_bar = wd.find_element(by=By.XPATH,
                                  value="/html/body/div[1]/header/nav/div/div[3]/form/div/div[2]/div/input[1]")
     time.sleep(5)
-    search_bar.send_keys("978-1800560413") # Sets ISBN
-    # SAMPLE ISBNS BELOW:
-    # 978-1800560413
-    # 978-1071614174
+    search_bar.send_keys(ISBN)
     time.sleep(5)
     search_button = wd.find_element(by=By.XPATH, value="/html/body/div[1]/header/nav/div/div[3]/form/div/span/button")
     search_button.click()
@@ -198,10 +199,7 @@ def get_books_amazon():
     search_bar = wd.find_element(by=By.XPATH,
                                  value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[2]/div[1]/input")
     time.sleep(5)
-    search_bar.send_keys(" 978-1800560413") #Sets ISBN
-    # SAMPLE ISBNS BELOW:
-    # 978-1800560413
-    # 978-1071614174
+    search_bar.send_keys(ISBN)
     time.sleep(5)
     search_button = wd.find_element(by=By.XPATH,
                                     value="/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div/span/input")
@@ -427,17 +425,21 @@ if __name__ == "__main__":
     # date_alter = input("on a scale from 0 to 5, how important is date to you?")
     # pref_store = input("which company do you prefer more, Amazon or Barnes and Noble? (write Amazon or Barnes below)")
 
-    #used to alter the weights of valeus for user preference, ran into issues implementing this using the terminal
-    pref_store = "Amazon"   #ALTER THIS TO CHANGE THE PREFERRED STORE
-    price_alter = 0         #ALTER THIS TO CHANGE THE IMPORTANCE OF PRICE (from 0 to 5)
-    review_alter = 5        #ALTER THIS TO CHANGE THE IMPORTANCE OF REVIEWS (from 0 to 5)
-    date_alter = 0          #ALTER THIS TO CHANGE THE IMPORTANCE OF THE DELIVERY DATE (from 0 to 5)
+    # used to alter the weights of values for user preference, ran into issues implementing this using the terminal
+    pref_store = "Barnes"   # ALTER THIS TO CHANGE THE PREFERRED STORE
+    price_alter = 0         # ALTER THIS TO CHANGE THE IMPORTANCE OF PRICE (from 0 to 5)
+    review_alter = 5        # ALTER THIS TO CHANGE THE IMPORTANCE OF REVIEWS (from 0 to 5)
+    date_alter = 0          # ALTER THIS TO CHANGE THE IMPORTANCE OF THE DELIVERY DATE (from 0 to 5)
+    ISBN = "978-1800560413" # ALTER THIS TO CHANGE THE BOOK BEING SEARCHED FOR
+    # SAMPLE ISBNS BELOW:
+    # 978-1800560413
+    # 978-1071614174
     allBooks = []
     Book1 = get_books_barnes_and_noble()
-    if pref_store == "Barnes":
-        barnes_and_noble_add_to_cart()
-        checkout_barnes_and_noble()
-        exit()
+    #if pref_store == "Barnes":
+    #    barnes_and_noble_add_to_cart()
+    #    checkout_barnes_and_noble()
+    #    exit()
     allBooks.append(Book1)
     Amazon_Books = get_books_amazon()
     allBooks = allBooks + Amazon_Books
@@ -456,3 +458,7 @@ if __name__ == "__main__":
     else:
         barnes_and_noble_add_to_cart()
         checkout_barnes_and_noble()
+
+#weights: 0 price, 5 reviews, 0 delivery date for 978-1800560413 yielded:
+# Amazon 1900-05-27 00:00:00 44.12 930704 90 Amazon New 267540.47649376164
+
