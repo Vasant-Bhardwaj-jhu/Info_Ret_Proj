@@ -18,6 +18,16 @@ global date_alter
 global ISBN
 global pref_store
 
+global first_name
+global last_name
+global street_address
+global amazon_email_or_phone
+global amazon_password
+
+# Introduction to Statistical Learning: 978-1461471370
+# Data Engineering with AWS: 978-1800560413
+#
+
 
 def weight_calc(date, cost, reviews, numrev, company, bookcondition = "New"):
     weight = 0
@@ -180,9 +190,9 @@ def checkout_barnes_and_noble():
     lastNameBox = wd.find_element(By.XPATH, '//*[@id="lastName"]')
     streetAddressBox = wd.find_element(By.XPATH, '//*[@id="streetAddress"]')
 
-    firstNameBox.send_keys("Saketh")
-    lastNameBox.send_keys("Manda")
-    streetAddressBox.send_keys("3700 North Charles St")
+    firstNameBox.send_keys(first_name)
+    lastNameBox.send_keys(last_name)
+    streetAddressBox.send_keys(street_address)
 
     time.sleep(5)
 
@@ -404,14 +414,14 @@ def checkout_amazon():
     time.sleep(5)
 
     signInBox = wd.find_element(By.XPATH, '//*[@id="ap_email"]')
-    signInBox.send_keys('4045437069')
+    signInBox.send_keys(amazon_email_or_phone)
     signInContinueButton = wd.find_element(By.XPATH, '//*[@id="continue"]')
     signInContinueButton.click()
 
     time.sleep(5)
 
     passwordBox = wd.find_element(By.XPATH, '//*[@id="ap_password"]')
-    passwordBox.send_keys('')
+    passwordBox.send_keys(amazon_password)
     passwordSignInButton = wd.find_element(By.XPATH, '//*[@id="signInSubmit"]')
     passwordSignInButton.click()
 
@@ -424,6 +434,13 @@ if __name__ == "__main__":
     # review_alter = input("on a scale from 0 to 5, how important are reviews to you?")
     # date_alter = input("on a scale from 0 to 5, how important is date to you?")
     # pref_store = input("which company do you prefer more, Amazon or Barnes and Noble? (write Amazon or Barnes below)")
+
+    # Enter your user details here
+    first_name = "Saketh"
+    last_name = "Manda"
+    street_address = "3700 North Charles St"
+    amazon_email_or_phone = 'smanda2@jhu.edu'
+    amazon_password = ''
 
     # used to alter the weights of values for user preference, ran into issues implementing this using the terminal
     pref_store = "Barnes"   # ALTER THIS TO CHANGE THE PREFERRED STORE
