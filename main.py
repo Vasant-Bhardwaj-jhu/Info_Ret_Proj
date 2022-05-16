@@ -337,7 +337,7 @@ def get_books_amazon():
             day = (day.split(' - '))[0]
         # date = day.split(' ')[1]
         # print("Delivery date= " + day)
-        formattedDay = datetime.strptime(day, '%b %d')
+        formattedDay = datetime.strptime(day, '%B %d')
 
         try:
             sellerRatingObject = seller.find_element(By.XPATH,
