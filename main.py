@@ -410,10 +410,14 @@ def checkout_amazon():
 
     wd.quit()
 
-
 if __name__ == "__main__":
+    pref_store = "Amazon"
     allBooks = []
     Book1 = get_books_barnes_and_noble()
+    if pref_store == "Barnes":
+        barnes_and_noble_add_to_cart()
+        checkout_barnes_and_noble()
+        exit()
     allBooks.append(Book1)
     Amazon_Books = get_books_amazon()
     allBooks = allBooks + Amazon_Books
@@ -422,10 +426,11 @@ if __name__ == "__main__":
 
     allBooks.sort(key=lambda x:x.weight)
     bookToBuy = Amazon_Books[0]
+
+
     if (bookToBuy.company == "Amazon"):
         bookToBuy.sellerAddToCart.click()
         checkout_amazon()
     else:
         barnes_and_noble_add_to_cart()
         checkout_barnes_and_noble()
-
